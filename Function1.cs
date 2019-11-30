@@ -15,26 +15,48 @@ namespace When_is_my_birthday
     public static class Function1
     {
         [FunctionName("When-is-my-bitrhday")]
-        public static async Task<IActionResult> RunAsync([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestMessage req, ILogger log)
+        public static IActionResult Run([HttpTrigger(AuthorizationLevel.Function, "get", "post", Route = null)] HttpRequestMessage req, ILogger log)
         {
-            var data = req.Content.ReadAsAsync<DialogFlowRequest>().Result;
-            var age = data.queryResult.parameters.number;
+            if (req.Method.ToString() == "POST")
+            {
+                try
+                {
+                    var data = req.Content.ReadAsAsync<DialogFlowRequest>().Result;
+                    var age = data.queryResult.parameters.number;
 
-            var Datetime = DateTime.Now;
-            var Year = Datetime.Year;
-            var borned_year1 = Year - age;
-            var borned_year2 = borned_year1--;
+                    var Datetime = DateTime.Now;
+                    var Year = Datetime.Year;
+                    var borned_year1 = Year - age;
+                    var borned_year2 = borned_year1--;
 
-            var ResponceObject = new DialogFlowResponce();
+                    var ResponceObject = new DialogFlowResponce();
 
-            var wareki_1 = Wareki(age,borned_year1);
-            var wareki_2 = Wareki(age,borned_year2);
+                    var wareki_1 = Wareki(age, borned_year1);
+                    var wareki_2 = Wareki(age, borned_year2);
 
-            ResponceObject.fulfillmentText = $"{borned_year1}年({wareki_1})、もしくは{borned_year2}年({wareki_2})です。";
-            string json = JsonConvert.SerializeObject(ResponceObject);
+                    ResponceObject.fulfillmentText = $"{borned_year1}年({wareki_1})、もしくは{borned_year2}年({wareki_2})です。";
+                    string json = JsonConvert.SerializeObject(ResponceObject);
 
-            var ReturnObject = new ObjectResult(json);
-            return ReturnObject;
+                    var ReturnObject = new ObjectResult(json);
+                    return ReturnObject;
+
+                }
+                catch (Exception)
+                {
+                    var ResponceObject = new DialogFlowResponce();
+
+                    ResponceObject.fulfillmentText = $"ごめんなさい計算できません。";
+                    string json = JsonConvert.SerializeObject(ResponceObject);
+
+                    var ReturnObject = new ObjectResult(json);
+                    return ReturnObject; ;
+                }
+            }
+            else
+            {
+                return new ObjectResult("");
+            }
+
         }
         public static string Wareki(float age, float year)
         {
